@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>PFP Generator</title>
+  <link href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=Tenor+Sans&display=swap" rel="stylesheet"/>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brown-deep:   #1a0e05;
+      --brown-mid:    #2e1a08;
+      --brown-warm:   #4a2c10;
+      --gold-dark:    #7a5318;
+      --gold-mid:     #b8860b;
+      --gold:         #d4a017;
+      --gold-bright:  #f0c040;
+      --gold-shine:   #ffe680;
+      --yellow-pop:   #ffe033;
+      --text:         #f5e6c0;
+      --text-muted:   #a08050;
+      --glass-bg:     rgba(255, 200, 80, 0.06);
+      --glass-border: rgba(255, 200, 80, 0.18);
+      --glass-shine:  rgba(255, 230, 128, 0.12);
+    }
+
+    /* ─── SCROLLBAR ─── */
+    ::-webkit-scrollbar { width: 6px; }
+    ::-webkit-scrollbar-track { background: var(--brown-deep); }
+    ::-webkit-scrollbar-thumb { background: var(--gold-dark); border-radius: 3px; }
+
+    /* ─── BODY & BACKGROUND ─── */
+    body {
+      min-height: 100vh;
+      background: var(--brown-deep);
+      color: var(--text);
+      font-family: 'Tenor Sans', serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 36px 16px 80px;
+      overflow-x: hidden;
+      cursor: default;
+
+      background-image:
+        /* Radial gold aurora blobs */
+        radial-gradient(ellipse 70% 55% at 15% 10%,  rgba(212,160,23,0.18) 0%, transparent 65%),
+        radial-gradient(ellipse 50% 40% at 85% 85%,  rgba(180,120,10,0.14) 0%, transparent 60%),
+        radial-gradient(ellipse 40% 35% at 50% 50%,  rgba(255,224,51,0.05) 0%, transparent 70%),
+        /* Fine diagonal grid */
+        repeating-linear-gradient(
+          -45deg,
+          transparent 0px, transparent 34px,
+          rgba(212,160,23,0.04) 34px, rgba(212,160,23,0.04) 35px
+        ),
+        /* Base dark */
+        linear-gradient(160deg, #1a0e05 0%, #0e0804 60%, #1a1005 100%);
+    }
+
+    /* Floating particle orbs */
+    body::before, body::after {
+      content: '';
+      position: fixed;
+      border-radius: 50%;
+      pointer-events: none;
+      z-index: 0;
+    }
+    body::before {
+      width: 600px; height: 600px;
+      top: -200px; left: -200px;
+      background: radial-gradient(circle, rgba(212,160,23,0.07) 0%, transparent 70%);
+      animation: floatOrb 18s ease-in-out infinite alternate;
+    }
+    body::after {
+      width: 400px; height: 400px;
+      bottom: -150px; right: -100px;
+      background: radial-gradient(circle, rgba(255,224,51,0.06) 0%, transparent 70%);
+      animation: floatOrb 22s ease-in-out infinite alternate-reverse;
+    }
+    @keyframes floatOrb {
+      from { transform: translate(0,0) scale(1); }
+      to   { transform: translate(40px, 50px) scale(1.15); }
+    }
+
+    /* ─── NOISE GRAIN OVERLAY ─── */
+    .grain {
+      position: fixed; inset: 0;
+      pointer-events: none; z-index: 1;
+      opacity: 0.03;
+      background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 200 200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 150px;
+    }
+
+    /* ─── ALL CONTENT ABOVE GRAIN ─── */
+    header, .main { position: relative; z-index: 2; }
+
+    /* ─── HEADER ─── */
+    header {
+      text-align: center;
+      margin-bottom: 44px;
+      animation: riseIn 0.9s cubic-bezier(.22,1,.36,1) both;
+    }
+    header img.logo {
+      height: 52px;
+      margin-bottom: 14px;
+      filter: drop-shadow(0 0 18px rgba(212,160,23,0.7));
+    }
+    .title-wrap { position: relative; display: inline-block; }
+    header h1 {
+      font-family: 'Cinzel', serif;
+      font-size: clamp(1.8rem, 5vw, 3rem);
+      font-weight: 900;
+      letter-spacing: 0.18em;
+      background: linear-gradient(135deg,
+        var(--gold-dark) 0%,
+        var(--gold-bright) 35%,
+        var(--yellow-pop) 55%,
+        var(--gold-bright) 70%,
+        var(--gold-mid) 100%
+      );
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      text-shadow: none;
+      position: relative;
+    }
+    /* shimmer sweep on title */
+    header h1::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(105deg, transparent 30%, rgba(255,255,200,0.35) 50%, transparent 70%);
+      background-size: 200%;
+      -webkit-background-clip: text;
+      background-clip: text;
+      animation: shimmer 4s ease-in-out infinite;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+
+    .title-line {
+      display: block;
+      width: 120px; height: 1px;
+      margin: 10px auto 0;
+      background: linear-gradient(90deg, transparent, var(--gold), transparent);
+    }
+    header p {
+      margin-top: 10px;
+      color: var(--text-muted);
+      font-size: 0.92rem;
+      letter-spacing: 0.18em;
+      text-transform: uppercase;
+    }
+
+    /* ─── LAYOUT ─── */
+    .main {
+      display: flex;
+      gap: 28px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      justify-content: center;
+      width: 100%;
+      max-width: 1080px;
+    }
+
+    /* ─── LIQUID GLASS PANEL ─── */
+    .glass {
+      background: var(--glass-bg);
+      border: 1px solid var(--glass-border);
+      border-radius: 20px;
+      backdrop-filter: blur(22px) saturate(140%);
+      -webkit-backdrop-filter: blur(22px) saturate(140%);
+      box-shadow:
+        inset 0 1px 0 rgba(255,220,100,0.15),
+        inset 0 -1px 0 rgba(0,0,0,0.25),
+        0 8px 40px rgba(0,0,0,0.45),
+        0 2px 8px rgba(212,160,23,0.08);
+      position: relative;
+      overflow: hidden;
+    }
+    /* Inner glass shine streak */
+    .glass::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: linear-gradient(90deg, transparent 5%, rgba(255,230,100,0.4) 30%, rgba(255,255,200,0.6) 50%, rgba(255,230,100,0.4) 70%, transparent 95%);
+      pointer-events: none;
+    }
+    .glass::after {
+      content: '';
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, rgba(255,210,80,0.06) 0%, transparent 50%, rgba(180,120,10,0.04) 100%);
+      pointer-events: none;
+      border-radius: inherit;
+    }
+
+    /* ─── SIDEBAR ─── */
+    .sidebar {
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+      width: 255px;
+    }
+    .sidebar .glass {
+      padding: 20px;
+      animation: slideLeft 0.7s cubic-bezier(.22,1,.36,1) both;
+    }
+    .sidebar .glass:nth-child(1) { animation-delay: 0.05s; }
+    .sidebar .glass:nth-child(2) { animation-delay: 0.12s; }
+    .sidebar .glass:nth-child(3) { animation-delay: 0.20s; }
+
+    .panel-title {
+      font-family: 'Cinzel', serif;
+      font-size: 0.65rem;
+      letter-spacing: 0.24em;
+      text-transform: uppercase;
+      color: var(--gold-bright);
+      margin-bottom: 16px;
+      padding-bottom: 10px;
+      border-bottom: 1px solid var(--glass-border);
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    .panel-title::before {
+      content: '';
+      display: inline-block;
+      width: 14px; height: 1px;
+      background: var(--gold);
+    }
+
+    /* ─── TEMPLATE THUMBS ─── */
+    .template-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .template-thumb {
+      border-radius: 12px;
+      overflow: hidden;
+      cursor: pointer;
+      aspect-ratio: 1;
+      background: rgba(0,0,0,0.3);
+      border: 1.5px solid rgba(180,120,10,0.3);
+      transition: border-color 0.25s, transform 0.25s, box-shadow 0.25s;
+      position: relative;
+    }
+    .template-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+    .template-thumb:hover {
+      border-color: var(--gold-bright);
+      transform: scale(1.04) translateY(-2px);
+      box-shadow: 0 8px 24px rgba(212,160,23,0.25);
+    }
+    .template-thumb.active {
+      border-color: var(--gold-shine);
+      box-shadow: 0 0 0 2px rgba(240,192,64,0.3), 0 8px 24px rgba(212,160,23,0.35);
+    }
+    .template-thumb.active::after {
+      content: '✓';
+      position: absolute;
+      top: 5px; right: 7px;
+      font-size: 0.7rem;
+      color: var(--yellow-pop);
+      text-shadow: 0 0 6px rgba(255,224,51,0.8);
+    }
+
+    /* ─── UPLOAD AREA ─── */
+    .upload-area {
+      border: 1.5px dashed rgba(180,120,10,0.4);
+      border-radius: 14px;
+      padding: 20px 14px;
+      text-align: center;
+      cursor: pointer;
+      transition: all 0.25s;
+      position: relative;
+      background: rgba(0,0,0,0.15);
+    }
+    .upload-area:hover {
+      border-color: var(--gold);
+      background: rgba(212,160,23,0.06);
+      box-shadow: inset 0 0 20px rgba(212,160,23,0.06);
+    }
+    .upload-area input {
+      position: absolute; inset: 0;
+      opacity: 0; cursor: pointer;
+      width: 100%; height: 100%;
+    }
+    .upload-icon {
+      font-size: 2.2rem;
+      margin-bottom: 8px;
+      filter: drop-shadow(0 0 10px rgba(212,160,23,0.5));
+      animation: pulse-icon 3s ease-in-out infinite;
+    }
+    @keyframes pulse-icon {
+      0%, 100% { transform: scale(1); filter: drop-shadow(0 0 10px rgba(212,160,23,0.5)); }
+      50%       { transform: scale(1.08); filter: drop-shadow(0 0 18px rgba(240,192,64,0.8)); }
+    }
+    .upload-area p { font-size: 0.82rem; color: var(--text-muted); line-height: 1.5; }
+    .upload-area strong { color: var(--gold-bright); font-weight: normal; }
+    #fileName {
+      margin-top: 8px;
+      font-size: 0.75rem;
+      color: var(--gold);
+      opacity: 0;
+      transition: opacity 0.3s;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #fileName.show { opacity: 1; }
+
+    /* ─── CONTROL BUTTONS ─── */
+    .controls-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .ctrl-btn {
+      background: rgba(0,0,0,0.25);
+      border: 1px solid rgba(180,120,10,0.28);
+      border-radius: 11px;
+      color: var(--text-muted);
+      font-family: 'Tenor Sans', serif;
+      font-size: 0.78rem;
+      letter-spacing: 0.05em;
+      padding: 11px 6px;
+      cursor: pointer;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 5px;
+      transition: all 0.2s;
+      user-select: none;
+      position: relative;
+      overflow: hidden;
+    }
+    .ctrl-btn .icon { font-size: 1.25rem; }
+    .ctrl-btn::before {
+      content: '';
+      position: absolute; inset: 0;
+      background: linear-gradient(135deg, rgba(212,160,23,0.12), transparent);
+      opacity: 0;
+      transition: opacity 0.2s;
+    }
+    .ctrl-btn:hover {
+      border-color: var(--gold);
+      color: var(--gold-bright);
+      box-shadow: 0 4px 16px rgba(212,160,23,0.18), inset 0 1px 0 rgba(255,220,100,0.1);
+      transform: translateY(-1px);
+    }
+    .ctrl-btn:hover::before { opacity: 1; }
+    .ctrl-btn:active { transform: scale(0.95) translateY(0); }
+
+    /* ─── SLIDERS ─── */
+    .slider-row { margin-top: 14px; }
+    .slider-label {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 7px;
+      letter-spacing: 0.06em;
+    }
+    .slider-label span:last-child { color: var(--gold-bright); font-weight: 600; }
+    input[type=range] {
+      -webkit-appearance: none;
+      width: 100%; height: 3px;
+      background: linear-gradient(90deg, var(--gold-dark), var(--gold-mid));
+      border-radius: 3px; outline: none;
+      cursor: pointer;
+    }
+    input[type=range]::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px; height: 18px;
+      background: radial-gradient(circle at 35% 35%, var(--gold-shine), var(--gold-mid));
+      border: 1.5px solid rgba(255,230,128,0.5);
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 0 10px rgba(212,160,23,0.5), 0 2px 6px rgba(0,0,0,0.4);
+      transition: transform 0.15s, box-shadow 0.15s;
+    }
+    input[type=range]::-webkit-slider-thumb:hover {
+      transform: scale(1.3);
+      box-shadow: 0 0 18px rgba(240,192,64,0.75), 0 2px 6px rgba(0,0,0,0.4);
+    }
+
+    .reset-btn {
+      width: 100%; margin-top: 14px;
+      background: rgba(0,0,0,0.2);
+      border: 1px solid rgba(180,120,10,0.25);
+      border-radius: 10px;
+      color: var(--text-muted);
+      font-family: 'Tenor Sans', serif;
+      font-size: 0.8rem;
+      letter-spacing: 0.08em;
+      padding: 9px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .reset-btn:hover {
+      border-color: rgba(212,160,23,0.6);
+      color: var(--gold-bright);
+      background: rgba(212,160,23,0.06);
+    }
+
+    /* ─── CANVAS AREA ─── */
+    .canvas-wrap {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 22px;
+      animation: riseIn 0.8s 0.15s cubic-bezier(.22,1,.36,1) both;
+    }
+
+    /* Decorative ring around canvas */
+    .canvas-ring {
+      padding: 3px;
+      border-radius: 22px;
+      background: conic-gradient(
+        from 0deg,
+        var(--gold-dark) 0deg,
+        var(--gold-bright) 80deg,
+        var(--yellow-pop) 140deg,
+        var(--gold-shine) 180deg,
+        var(--gold-bright) 220deg,
+        var(--gold-mid) 280deg,
+        var(--gold-dark) 360deg
+      );
+      box-shadow:
+        0 0 30px rgba(212,160,23,0.3),
+        0 0 80px rgba(180,120,10,0.15),
+        0 20px 60px rgba(0,0,0,0.5);
+      animation: ringGlow 5s ease-in-out infinite alternate;
+    }
+    @keyframes ringGlow {
+      from { box-shadow: 0 0 30px rgba(212,160,23,0.25), 0 20px 60px rgba(0,0,0,0.5); }
+      to   { box-shadow: 0 0 55px rgba(240,192,64,0.45), 0 20px 60px rgba(0,0,0,0.5); }
+    }
+
+    .canvas-container {
+      position: relative;
+      width: 460px; height: 460px;
+      border-radius: 20px;
+      overflow: hidden;
+      background: radial-gradient(circle at 50% 40%, #1e1008 0%, #0a0602 100%);
+    }
+
+    .canvas-placeholder {
+      position: absolute; inset: 0;
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      gap: 12px; z-index: 0;
+    }
+    .ph-icon {
+      font-size: 3.5rem;
+      opacity: 0.25;
+      animation: pulse-icon 4s ease-in-out infinite;
+    }
+    .canvas-placeholder p {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      opacity: 0.5;
+      letter-spacing: 0.1em;
+    }
+
+    #dragCanvas {
+      position: absolute; inset: 0;
+      z-index: 1;
+      cursor: grab;
+      display: block;
+    }
+    #dragCanvas:active { cursor: grabbing; }
+
+    #templateLayer {
+      position: absolute; inset: 0;
+      width: 100%; height: 100%;
+      object-fit: contain;
+      pointer-events: none;
+      z-index: 2;
+    }
+
+    /* Liquid glass gloss on canvas */
+    .canvas-gloss {
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 50%;
+      background: linear-gradient(180deg, rgba(255,220,100,0.04) 0%, transparent 100%);
+      border-radius: 20px 20px 0 0;
+      pointer-events: none;
+      z-index: 3;
+    }
+
+    /* ─── DOWNLOAD BUTTON ─── */
+    .download-btn {
+      border: none;
+      border-radius: 14px;
+      font-family: 'Cinzel', serif;
+      font-size: 0.9rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      padding: 16px 44px;
+      cursor: pointer;
+      position: relative;
+      overflow: hidden;
+      transition: transform 0.2s, box-shadow 0.2s;
+
+      background: linear-gradient(135deg,
+        var(--gold-dark) 0%,
+        var(--gold) 30%,
+        var(--gold-bright) 55%,
+        var(--gold) 75%,
+        var(--gold-dark) 100%
+      );
+      background-size: 200%;
+      color: var(--brown-deep);
+      box-shadow:
+        0 4px 20px rgba(212,160,23,0.4),
+        0 1px 0 rgba(255,240,160,0.5) inset,
+        0 -1px 0 rgba(0,0,0,0.3) inset;
+      animation: btnShimmer 4s linear infinite;
+    }
+    @keyframes btnShimmer {
+      0%   { background-position: 200% center; }
+      100% { background-position: -200% center; }
+    }
+    .download-btn::before {
+      content: '';
+      position: absolute;
+      top: 0; left: -100%;
+      width: 60%; height: 100%;
+      background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+      transform: skewX(-20deg);
+      animation: btnSweep 3.5s ease-in-out infinite;
+    }
+    @keyframes btnSweep {
+      0%   { left: -100%; }
+      60%  { left: 160%; }
+      100% { left: 160%; }
+    }
+    .download-btn:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 10px 36px rgba(212,160,23,0.55), 0 1px 0 rgba(255,240,160,0.5) inset;
+    }
+    .download-btn:active { transform: scale(0.97) translateY(0); }
+    .download-btn:disabled {
+      opacity: 0.35; cursor: not-allowed;
+      transform: none; animation: none;
+    }
+    .download-btn:disabled::before { display: none; }
+
+    /* ─── TOAST ─── */
+    .toast {
+      position: fixed;
+      bottom: 32px; left: 50%;
+      transform: translateX(-50%) translateY(100px);
+      background: rgba(26,14,5,0.9);
+      border: 1px solid var(--gold);
+      border-radius: 12px;
+      padding: 13px 28px;
+      font-size: 0.88rem;
+      color: var(--gold-bright);
+      box-shadow: 0 4px 30px rgba(0,0,0,0.6), 0 0 20px rgba(212,160,23,0.2);
+      backdrop-filter: blur(12px);
+      transition: transform 0.4s cubic-bezier(.22,1,.36,1);
+      z-index: 9999;
+      letter-spacing: 0.08em;
+    }
+    .toast.show { transform: translateX(-50%) translateY(0); }
+
+    /* ─── ANIMATIONS ─── */
+    @keyframes riseIn   { from { opacity:0; transform:translateY(24px); } to { opacity:1; transform:none; } }
+    @keyframes slideLeft { from { opacity:0; transform:translateX(-24px); } to { opacity:1; transform:none; } }
+
+    /* ─── RESPONSIVE ─── */
+    @media (max-width: 800px) {
+      .canvas-container { width: 320px; height: 320px; }
+      .sidebar { width: 100%; flex-direction: row; flex-wrap: wrap; }
+      .sidebar .glass { flex: 1 1 200px; }
+    }
+  </style>
+</head>
+<body>
+
+<div class="grain"></div>
+
+<header>
+  <div class="title-wrap">
+    <img src="assets/logo.png" alt="Logo" style="height:90px; filter: drop-shadow(0 0 22px rgba(212,160,23,0.85)) drop-shadow(0 0 8px rgba(255,224,51,0.5)); animation: pulse-icon 3s ease-in-out infinite;"/>
+    <span class="title-line"></span>
+  </div>
+  <p>Share · Learn · Grow</p>
+  <p>made by ayush</p>
+</header>
+
+<div class="main">
+
+  <!-- ── SIDEBAR ── -->
+  <aside class="sidebar">
+
+    <!-- Template -->
+    <div class="glass">
+      <div class="panel-title">Choose Frame</div>
+      <div class="template-grid">
+        <div class="template-thumb active" data-src="assets/robocat.png" onclick="selectTemplate(this)">
+          <img src="assets/robocat.png" alt="Robocat"/>
+        </div>
+        <div class="template-thumb" data-src="assets/franklin.png" onclick="selectTemplate(this)">
+          <img src="assets/franklin.png" alt="Franklin"/>
+        </div>
+      </div>
+    </div>
+
+    <!-- Upload -->
+    <div class="glass">
+      <div class="panel-title">Your Photo</div>
+      <div class="upload-area">
+        <input type="file" accept="image/*" id="fileInput" onchange="loadUserImage(event)"/>
+        <div class="upload-icon">✦</div>
+        <p><strong>Click to upload</strong><br/>or drag & drop your photo</p>
+        <div id="fileName"></div>
+      </div>
+    </div>
+
+    <!-- Controls -->
+    <div class="glass">
+      <div class="panel-title">Adjust Photo</div>
+      <div class="controls-grid">
+        <button class="ctrl-btn" onclick="flipH()"><span class="icon">⇔</span>Flip H</button>
+        <button class="ctrl-btn" onclick="flipV()"><span class="icon">⇕</span>Flip V</button>
+        <button class="ctrl-btn" onclick="rotate(-90)"><span class="icon">↺</span>Rotate L</button>
+        <button class="ctrl-btn" onclick="rotate(90)"><span class="icon">↻</span>Rotate R</button>
+        <button class="ctrl-btn" onclick="zoom(0.1)"><span class="icon">⊕</span>Zoom In</button>
+        <button class="ctrl-btn" onclick="zoom(-0.1)"><span class="icon">⊖</span>Zoom Out</button>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Zoom</span><span id="zoomVal">100%</span></div>
+        <input type="range" id="zoomSlider" min="20" max="300" value="100" oninput="setZoom(this.value)"/>
+      </div>
+      <div class="slider-row">
+        <div class="slider-label"><span>Rotation</span><span id="rotVal">0°</span></div>
+        <input type="range" id="rotSlider" min="-180" max="180" value="0" oninput="setRot(this.value)"/>
+      </div>
+      <button class="reset-btn" onclick="resetTransform()">↺ &nbsp;Reset All</button>
+    </div>
+
+  </aside>
+
+  <!-- ── CANVAS ── -->
+  <div class="canvas-wrap">
+    <div class="canvas-ring">
+      <div class="canvas-container" id="canvasContainer">
+        <div class="canvas-placeholder" id="placeholder">
+          <div class="ph-icon">✦</div>
+          <p>Upload a photo to begin</p>
+        </div>
+        <canvas id="dragCanvas"></canvas>
+        <img id="templateLayer" src="assets/robocat.png" alt="Template" style="display:none;"/>
+        <div class="canvas-gloss"></div>
+      </div>
+    </div>
+
+    <button class="download-btn" id="downloadBtn" onclick="downloadPFP()" disabled>
+      ⬇ &ensp;DOWNLOAD PFP
+    </button>
+  </div>
+
+</div>
+
+<div class="toast" id="toast">✦ PFP downloaded!</div>
+
+<script>
+  const state = {
+    userImg: null,
+    templateSrc: 'assets/robocat.png',
+    scaleX: 1, scaleY: 1,
+    rotation: 0, zoom: 1,
+    offsetX: 0, offsetY: 0,
+    dragging: false,
+    dragStartX: 0, dragStartY: 0,
+  };
+
+  const canvas = document.getElementById('dragCanvas');
+  const ctx = canvas.getContext('2d');
+  const container = document.getElementById('canvasContainer');
+  const getSize = () => container.offsetWidth;
+
+  function initCanvas() {
+    const s = getSize();
+    canvas.width = s; canvas.height = s;
+    render();
+  }
+
+  function selectTemplate(el) {
+    document.querySelectorAll('.template-thumb').forEach(t => t.classList.remove('active'));
+    el.classList.add('active');
+    state.templateSrc = el.dataset.src;
+    const tl = document.getElementById('templateLayer');
+    tl.src = state.templateSrc;
+    if (state.userImg) tl.style.display = 'block';
+    render();
+  }
+
+  function loadUserImage(e) {
+    const file = e.target.files[0];
+    if (!file) return;
+    const fn = document.getElementById('fileName');
+    fn.textContent = '✦ ' + file.name;
+    fn.classList.add('show');
+    const reader = new FileReader();
+    reader.onload = ev => {
+      const img = new Image();
+      img.onload = () => {
+        state.userImg = img;
+        state.offsetX = 0; state.offsetY = 0;
+        state.zoom = 1; state.rotation = 0;
+        state.scaleX = 1; state.scaleY = 1;
+        syncSliders();
+        document.getElementById('placeholder').style.display = 'none';
+        document.getElementById('templateLayer').style.display = 'block';
+        document.getElementById('downloadBtn').disabled = false;
+        render();
+      };
+      img.src = ev.target.result;
+    };
+    reader.readAsDataURL(file);
+  }
+
+  function render() {
+    const s = getSize();
+    canvas.width = s; canvas.height = s;
+    ctx.clearRect(0, 0, s, s);
+    if (!state.userImg) return;
+    const img = state.userImg;
+    const aspect = img.width / img.height;
+    let w, h;
+    if (aspect >= 1) { w = s; h = s / aspect; }
+    else { h = s; w = s * aspect; }
+    ctx.save();
+    ctx.translate(s / 2 + state.offsetX, s / 2 + state.offsetY);
+    ctx.rotate(state.rotation * Math.PI / 180);
+    ctx.scale(state.scaleX * state.zoom, state.scaleY * state.zoom);
+    ctx.drawImage(img, -w / 2, -h / 2, w, h);
+    ctx.restore();
+  }
+
+  function flipH() { state.scaleX *= -1; render(); }
+  function flipV() { state.scaleY *= -1; render(); }
+
+  function rotate(deg) {
+    state.rotation = (state.rotation + deg) % 360;
+    document.getElementById('rotSlider').value = state.rotation;
+    document.getElementById('rotVal').textContent = Math.round(state.rotation) + '°';
+    render();
+  }
+  function setRot(val) {
+    state.rotation = parseFloat(val);
+    document.getElementById('rotVal').textContent = Math.round(val) + '°';
+    render();
+  }
+
+  function zoom(delta) {
+    state.zoom = Math.min(3, Math.max(0.2, state.zoom + delta));
+    syncZoomUI(); render();
+  }
+  function setZoom(val) {
+    state.zoom = parseFloat(val) / 100;
+    document.getElementById('zoomVal').textContent = Math.round(val) + '%';
+    render();
+  }
+
+  function syncSliders() {
+    document.getElementById('zoomSlider').value = Math.round(state.zoom * 100);
+    document.getElementById('zoomVal').textContent = Math.round(state.zoom * 100) + '%';
+    document.getElementById('rotSlider').value = state.rotation;
+    document.getElementById('rotVal').textContent = Math.round(state.rotation) + '°';
+  }
+  function syncZoomUI() {
+    document.getElementById('zoomSlider').value = Math.round(state.zoom * 100);
+    document.getElementById('zoomVal').textContent = Math.round(state.zoom * 100) + '%';
+  }
+
+  function resetTransform() {
+    state.zoom = 1; state.rotation = 0;
+    state.scaleX = 1; state.scaleY = 1;
+    state.offsetX = 0; state.offsetY = 0;
+    syncSliders(); render();
+  }
+
+  // Drag
+  canvas.addEventListener('mousedown', e => {
+    if (!state.userImg) return;
+    state.dragging = true;
+    state.dragStartX = e.clientX - state.offsetX;
+    state.dragStartY = e.clientY - state.offsetY;
+  });
+  window.addEventListener('mousemove', e => {
+    if (!state.dragging) return;
+    state.offsetX = e.clientX - state.dragStartX;
+    state.offsetY = e.clientY - state.dragStartY;
+    render();
+  });
+  window.addEventListener('mouseup', () => { state.dragging = false; });
+
+  canvas.addEventListener('touchstart', e => {
+    if (!state.userImg) return;
+    const t = e.touches[0];
+    state.dragging = true;
+    state.dragStartX = t.clientX - state.offsetX;
+    state.dragStartY = t.clientY - state.offsetY;
+  }, {passive:true});
+  window.addEventListener('touchmove', e => {
+    if (!state.dragging) return;
+    const t = e.touches[0];
+    state.offsetX = t.clientX - state.dragStartX;
+    state.offsetY = t.clientY - state.dragStartY;
+    render();
+  }, {passive:true});
+  window.addEventListener('touchend', () => { state.dragging = false; });
+
+  canvas.addEventListener('wheel', e => {
+    e.preventDefault();
+    zoom(e.deltaY > 0 ? -0.05 : 0.05);
+  }, {passive:false});
+
+  // Download
+  function downloadPFP() {
+    const s = getSize();
+    const off = document.createElement('canvas');
+    off.width = s; off.height = s;
+    const oc = off.getContext('2d');
+    if (state.userImg) {
+      const img = state.userImg;
+      const aspect = img.width / img.height;
+      let w, h;
+      if (aspect >= 1) { w = s; h = s / aspect; }
+      else { h = s; w = s * aspect; }
+      oc.save();
+      oc.translate(s / 2 + state.offsetX, s / 2 + state.offsetY);
+      oc.rotate(state.rotation * Math.PI / 180);
+      oc.scale(state.scaleX * state.zoom, state.scaleY * state.zoom);
+      oc.drawImage(img, -w / 2, -h / 2, w, h);
+      oc.restore();
+    }
+    const tpl = new Image();
+    tpl.onload = () => { oc.drawImage(tpl, 0, 0, s, s); go(off); };
+    tpl.onerror  = () => go(off);
+    tpl.src = state.templateSrc;
+  }
+  function go(offCanvas) {
+    const link = document.createElement('a');
+    link.download = 'my-pfp.png';
+    link.href = offCanvas.toDataURL('image/png');
+    link.click();
+    showToast('✦ Your PFP is ready!');
+  }
+  function showToast(msg) {
+    const t = document.getElementById('toast');
+    t.textContent = msg;
+    t.classList.add('show');
+    setTimeout(() => t.classList.remove('show'), 3000);
+  }
+
+  window.addEventListener('resize', initCanvas);
+  initCanvas();
+</script>
+</body>
+</html>
